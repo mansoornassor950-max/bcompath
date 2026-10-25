@@ -23,7 +23,7 @@ jobs:
           java-version: '17'
 
       - name: Check Android project
-        working-directory: ./bcompath
+        working-directory: .
         run: |
           echo "Checking Android project..."
           ls -la
@@ -31,7 +31,7 @@ jobs:
           test -f settings.gradle || test -f settings.gradle.kts
 
       - name: Build Debug APK
-        working-directory: ./bcompath
+        working-directory: ./
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug
@@ -40,6 +40,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: BComPath-Android-APK
-          path: bcompath/app/build/outputs/apk/debug/*.apk
+          path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 14
