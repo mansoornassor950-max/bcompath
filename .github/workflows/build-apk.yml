@@ -25,15 +25,27 @@ jobs:
       with:
         gradle-version: '8.11.1'
 
-    - name: Fix Icon Filename
+    - name: Create Full-Circle Adaptive Icon
       run: |
         cd app/src/main/res/drawable
-        find . -maxdepth 1 -type f ! -name ".gitkeep" ! -name "ic_launcher.*" | while read -r file; do
-          echo "Renaming illegal file $file to ic_launcher.jpg"
-          mv "$file" ic_launcher.jpg
-          break
+        # Find your photo and duplicate it for both background and legacy icon
+        for file in *; do
+          if [[ "$file" =~ \.(png|jpg|jpeg|webp)$ ]]; then
+            cp "$file" ic_launcher_bg.jpg
+            cp "$file" ic_launcher.jpg
+            break
+          fi
         done
-        ls -la
+        # Create the modern Android adaptive icon configuration
+        mkdir -p ../drawable-v26
+        cat << 'EOF' > ../drawable-v26/ic_launcher.xml
+        <?xml version="1.0" encoding="utf-8"?>
+        <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+            <background android:drawable="@drawable/ic_launcher_bg" />
+            <foreground android:drawable="@android:color/transparent" />
+        </adaptive-icon>
+        EOF
+        echo "Adaptive full-circle icon created successfully."
 
     - name: Build Debug APK
       run: gradle assembleDebug
