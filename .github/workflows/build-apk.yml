@@ -25,18 +25,16 @@ jobs:
       with:
         gradle-version: '8.11.1'
 
-    - name: Create Full-Circle Adaptive Icon
+    - name: Fix Icon and Create Adaptive Icon
       run: |
         cd app/src/main/res/drawable
-        # Find your photo and duplicate it for both background and legacy icon
-        for file in *; do
-          if [[ "$file" =~ \.(png|jpg|jpeg|webp)$ ]]; then
-            cp "$file" ic_launcher_bg.jpg
-            cp "$file" ic_launcher.jpg
-            break
-          fi
-        done
-        # Create the modern Android adaptive icon configuration
+        # Force rename the 3eb... photo directly
+        mv 3eb* ic_launcher_bg.jpg 2>/dev/null || true
+        # Also copy it to ic_launcher.jpg
+        cp -f ic_launcher_bg.jpg ic_launcher.jpg 2>/dev/null || true
+        # Clean up any leftover files starting with numbers or containing ~
+        rm -f *~* [0-9]* 2>/dev/null || true
+        # Create full-circle adaptive icon configuration
         mkdir -p ../drawable-v26
         cat << 'EOF' > ../drawable-v26/ic_launcher.xml
         <?xml version="1.0" encoding="utf-8"?>
@@ -45,7 +43,8 @@ jobs:
             <foreground android:drawable="@android:color/transparent" />
         </adaptive-icon>
         EOF
-        echo "Adaptive full-circle icon created successfully."
+        echo "=== Files in drawable after cleanup: ==="
+        ls -la
 
     - name: Build Debug APK
       run: gradle assembleDebug
