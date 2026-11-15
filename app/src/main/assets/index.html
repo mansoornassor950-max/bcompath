@@ -585,4 +585,87 @@ body.sepiamode .chat-msg.bot { background: #f4ecdc; color: #2d2218; border-color
   // =========================================================
   // 7. HYBRID BCOMPATH AI STUDY TUTOR (OFFLINE + LIVE CLOUD)
   // =======================================================
+ 
+ 
+
+  // Local HTML escaping helper for the Formula Cheat Sheet.
+  const esc = value => String(value).replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[ch]));
+
+  // Connect the existing GPA and Formula tools.
+  window.showGpaCalculator = showGpaCalculator;
+  window.showCheatSheet = showCheatSheet;
+
+  const unitNav = document.getElementById('unitNav');
+
+  function addToolButton(id, symbol, label, description, action) {
+    if (!unitNav || document.getElementById(id)) return;
+
+    const button = document.createElement('button');
+    button.id = id;
+    button.className = 'navbtn';
+    button.innerHTML =
+      '<span class="num">' + symbol + '</span>' +
+      '<span class="navtext">' +
+      '<span class="navcode">' + label + '</span>' +
+      '<span class="navtitle">' + description + '</span>' +
+      '</span>';
+
+    button.onclick = action;
+    unitNav.parentNode.insertBefore(button, unitNav);
+  }
+
+  addToolButton(
+    'navGpa',
+    '%',
+    'GPA Calculator',
+    'Estimate your Year 1 average',
+    showGpaCalculator
+  );
+
+  addToolButton(
+    'navCheat',
+    '∑',
+    'Formula Cheat Sheet',
+    'Quick formulas and legal terms',
+    showCheatSheet
+  );
+
+  // Show the floating reading tools only on study pages.
+  const panel = document.getElementById('panel');
+
+  function updateStudyTools() {
+    const hasStudy = !!document.querySelector('#panel .studycontent');
+
+    if (audioDock) {
+      audioDock.classList.toggle(
+        'hidden',
+        !(hasStudy && synth && ttsPlay)
+      );
+    }
+
+    if (jumpBtn) {
+      jumpBtn.classList.toggle('hidden', !hasStudy);
+    }
+  }
+
+  updateStudyTools();
+
+  if (panel && window.MutationObserver) {
+    const studyObserver = new MutationObserver(updateStudyTools);
+    studyObserver.observe(panel, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+})();
+</script>
+</body>
+</html>
 </body></html>
