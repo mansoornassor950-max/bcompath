@@ -201,4 +201,388 @@ body{padding-bottom:92px}
  if(document.readyState==='complete'){finish();}else{window.addEventListener('load',finish,{once:true});setTimeout(finish,5000);}
 })();
 </script>
+ <!-- ========================================================= -->
+<!-- BCOMPATH v1.2: COMPLETE UI, VOICE, AI & STUDY TOOLS PACK   -->
+<!-- ========================================================= -->
+
+<!-- 1. TOP READING SCROLL PROGRESS BAR -->
+<div id="bcompathReadingBar" style="position:fixed;top:0;left:0;height:4px;width:0%;background:linear-gradient(90deg,#159bff,#75d3ff);z-index:999999;transition:width .1s linear;"></div>
+
+<!-- 2. FLOATING AUDIO READER BAR (TEXT-TO-SPEECH) -->
+<div id="audioPlayerDock" class="hidden" style="position:fixed;top:65px;right:12px;z-index:9000;background:rgba(8,27,59,0.96);border:1px solid #365274;border-radius:30px;padding:6px 12px;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,0.35);backdrop-filter:blur(8px);">
+  <span style="font-size:1.1rem;color:#75d3ff;">🎧</span>
+  <button id="ttsPlayBtn" class="btn primary" style="padding:4px 10px;font-size:0.75rem;border-radius:20px;">▶ Listen</button>
+  <button id="ttsStopBtn" class="btn" style="padding:4px 8px;font-size:0.75rem;border-radius:20px;display:none;">⏹ Stop</button>
+  <button id="ttsSpeedBtn" class="btn" style="padding:4px 8px;font-size:0.72rem;border-radius:20px;color:#c8dcf6;">1.0x</button>
+</div>
+
+<!-- 3. FLOATING "JUMP TO SECTION" PILL -->
+<button id="jumpPill" class="hidden" style="position:fixed;bottom:100px;right:14px;z-index:8500;background:#159bff;color:white;border:none;border-radius:30px;padding:10px 14px;font-size:0.78rem;font-weight:750;box-shadow:0 6px 20px rgba(21,155,255,0.4);display:flex;align-items:center;gap:6px;">
+  <span>📑 Jump to...</span>
+</button>
+
+<style>
+/* WARM SEPIA THEME */
+body.sepiamode {
+  --paper: #f8f3e8 !important;
+  --ink: #2d2218 !important;
+  --muted: #786655 !important;
+  --line: #ded3be !important;
+  --white: #fffdf8 !important;
+  background: #f8f3e8 !important;
+  color: #2d2218 !important;
+}
+body.sepiamode .panel, body.sepiamode .side, body.sepiamode .featurecard, 
+body.sepiamode .toolcard, body.sepiamode .studycontent, body.sepiamode .flashface {
+  background: #fffdf8 !important;
+  color: #2d2218 !important;
+  border-color: #ded3be !important;
+}
+body.sepiamode .top { background: #3e2c1c !important; }
+body.sepiamode .bottom-tools { background: rgba(62,44,28,0.98) !important; border-top-color: #634a34 !important; }
+body.sepiamode .bottom-tools button { background: #4a3725 !important; border-color: #634a34 !important; }
+body.sepiamode .navbtn { color: #2d2218 !important; }
+body.sepiamode .navbtn:hover, body.sepiamode .navbtn.active { background: #eee2cd !important; color: #8c521b !important; }
+
+/* BOOK SERIF FONT */
+body.seriffont .studycontent, body.seriffont .content, body.seriffont p, body.seriffont li {
+  font-family: Georgia, Cambria, 'Times New Roman', serif !important;
+  line-height: 1.85 !important;
+}
+
+/* STUDY CALLOUT CARDS */
+.kenyan-card {
+  background: #f0fdf4 !important;
+  border-left: 5px solid #16a34a !important;
+  border-radius: 10px !important;
+  padding: 12px 16px !important;
+  margin: 14px 0 !important;
+}
+body.darkmode .kenyan-card { background: #0d281a !important; border-left-color: #22c55e !important; color: #dcfce7 !important; }
+body.sepiamode .kenyan-card { background: #edf7ee !important; border-left-color: #2e7d32 !important; }
+
+.exam-warning-card {
+  background: #fef2f2 !important;
+  border-left: 5px solid #dc2626 !important;
+  border-radius: 10px !important;
+  padding: 12px 16px !important;
+  margin: 14px 0 !important;
+}
+body.darkmode .exam-warning-card { background: #351518 !important; border-left-color: #ef4444 !important; color: #fee2e2 !important; }
+body.sepiamode .exam-warning-card { background: #fae8e8 !important; border-left-color: #c53030 !important; }
+
+.formula-card {
+  background: #f0f7ff !important;
+  border: 1px solid #bfdbfe !important;
+  border-left: 4px solid #159bff !important;
+  border-radius: 10px !important;
+  padding: 10px 14px !important;
+  margin: 12px 0 !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+  color: #0c4a6e !important;
+  overflow-x: auto !important;
+}
+body.darkmode .formula-card { background: #0c2340 !important; border-color: #1e3a8a !important; color: #bae6fd !important; }
+body.sepiamode .formula-card { background: #edf4fb !important; border-color: #c5d8ea !important; color: #1e3a8a !important; }
+
+.content table tr:last-child td, .studycontent table tr:last-child td {
+  border-bottom: 3px double currentColor !important;
+  font-weight: 850 !important;
+}
+
+/* AI CHAT MESSAGE BUBBLES */
+.chat-msg { padding: 10px 14px; border-radius: 14px; margin: 8px 0; max-width: 88%; font-size: 0.92rem; line-height: 1.5; }
+.chat-msg.user { background: #159bff; color: white; margin-left: auto; border-bottom-right-radius: 3px; }
+.chat-msg.bot { background: #eaf2fb; color: #12213a; margin-right: auto; border-bottom-left-radius: 3px; border: 1px solid #dbe4f0; }
+body.darkmode .chat-msg.bot { background: #10294d; color: #e8f2ff; border-color: #233a59; }
+body.sepiamode .chat-msg.bot { background: #f4ecdc; color: #2d2218; border-color: #ded3be; }
+</style>
+
+<script>
+(function(){
+  // ==========================================
+  // 1. TOP READING SCROLL PROGRESS BAR
+  // ==========================================
+  window.addEventListener('scroll', function() {
+    const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+    const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
+    const bar = document.getElementById('bcompathReadingBar');
+    if (bar) bar.style.width = scrolled + '%';
+  });
+
+  // ==========================================
+  // 2. THEMES & FONT SETTINGS
+  // ==========================================
+  const savedTheme = localStorage.getItem('bcompath_theme') || (localStorage.getItem('bcompath_dark') === '1' ? 'dark' : 'light');
+  const savedFont = localStorage.getItem('bcompath_font') || 'sans';
+
+  function applyTheme(t) {
+    document.body.classList.remove('darkmode', 'sepiamode');
+    if (t === 'dark') document.body.classList.add('darkmode');
+    if (t === 'sepia') document.body.classList.add('sepiamode');
+    localStorage.setItem('bcompath_theme', t);
+    localStorage.setItem('bcompath_dark', t === 'dark' ? '1' : '0');
+  }
+  function applyFont(f) {
+    if (f === 'serif') document.body.classList.add('seriffont');
+    else document.body.classList.remove('seriffont');
+    localStorage.setItem('bcompath_font', f);
+  }
+  applyTheme(savedTheme);
+  applyFont(savedFont);
+
+  // Hook into Reading Settings
+  const bottomReadBtn = document.getElementById('bottomRead');
+  if (bottomReadBtn) {
+    bottomReadBtn.addEventListener('click', function() {
+      setTimeout(function() {
+        const panel = document.getElementById('panel');
+        if (panel && !document.getElementById('themeSelectRow')) {
+          const themeCard = document.createElement('div');
+          themeCard.className = 'toolcard';
+          themeCard.id = 'themeSelectRow';
+          themeCard.innerHTML = `
+            <h3>Reading Theme & Style</h3>
+            <p class="muted">Personalize your reading comfort:</p>
+            <div class="actions" style="margin-bottom:12px;">
+              <button class="toolbtn" id="themeLight">☀️ Clean Light</button>
+              <button class="toolbtn" id="themeSepia" style="background:#f4ecd8;color:#4a3725;border-color:#d4c4a8;">📜 Warm Sepia</button>
+              <button class="toolbtn" id="themeDark" style="background:#0d2039;color:#fff;">🌙 Dark Navy</button>
+            </div>
+            <h4>Typography</h4>
+            <div class="actions">
+              <button class="toolbtn" id="fontSans">Modern (Sans-Serif)</button>
+              <button class="toolbtn" id="fontSerif" style="font-family:Georgia,serif;">Book (Serif)</button>
+            </div>
+          `;
+          panel.insertBefore(themeCard, panel.children[1]);
+          document.getElementById('themeLight').onclick = () => applyTheme('light');
+          document.getElementById('themeSepia').onclick = () => applyTheme('sepia');
+          document.getElementById('themeDark').onclick = () => applyTheme('dark');
+          document.getElementById('fontSans').onclick = () => applyFont('sans');
+          document.getElementById('fontSerif').onclick = () => applyFont('serif');
+        }
+      }, 60);
+    });
+  }
+
+  // ==========================================
+  // 3. OFFLINE VOICE READER (TEXT-TO-SPEECH)
+  // ==========================================
+  let synth = window.speechSynthesis;
+  let ttsUtterance = null;
+  let ttsRates = [1.0, 1.25, 1.5, 0.85];
+  let currentRateIdx = 0;
+
+  const audioDock = document.getElementById('audioPlayerDock');
+  const ttsPlay = document.getElementById('ttsPlayBtn');
+  const ttsStop = document.getElementById('ttsStopBtn');
+  const ttsSpeed = document.getElementById('ttsSpeedBtn');
+
+  function getArticleText() {
+    const content = document.querySelector('.collection-content, .studycontent, .content');
+    return content ? content.innerText : '';
+  }
+
+  if (ttsPlay && synth) {
+    ttsPlay.onclick = function() {
+      if (synth.speaking && !synth.paused) {
+        synth.pause();
+        ttsPlay.textContent = '▶ Resume';
+      } else if (synth.paused) {
+        synth.resume();
+        ttsPlay.textContent = '⏸ Pause';
+      } else {
+        const text = getArticleText();
+        if (!text) { alert('No study text found to read.'); return; }
+        synth.cancel();
+        ttsUtterance = new SpeechSynthesisUtterance(text);
+        ttsUtterance.rate = ttsRates[currentRateIdx];
+        ttsUtterance.lang = 'en-US';
+        ttsUtterance.onend = function() {
+          ttsPlay.textContent = '▶ Listen';
+          ttsStop.style.display = 'none';
+        };
+        synth.speak(ttsUtterance);
+        ttsPlay.textContent = '⏸ Pause';
+        ttsStop.style.display = 'inline-block';
+      }
+    };
+
+    ttsStop.onclick = function() {
+      synth.cancel();
+      ttsPlay.textContent = '▶ Listen';
+      ttsStop.style.display = 'none';
+    };
+
+    ttsSpeed.onclick = function() {
+      currentRateIdx = (currentRateIdx + 1) % ttsRates.length;
+      const rate = ttsRates[currentRateIdx];
+      ttsSpeed.textContent = rate.toFixed(2) + 'x';
+      if (synth.speaking) {
+        ttsStop.click();
+        ttsPlay.click();
+      }
+    };
+  }
+
+  // ==========================================
+  // 4. FLOATING "JUMP TO SECTION" HELPER
+  // ==========================================
+  const jumpBtn = document.getElementById('jumpPill');
+  if (jumpBtn) {
+    jumpBtn.onclick = function() {
+      const headings = Array.from(document.querySelectorAll('.collection-content h1, .collection-content h2, .studycontent h1, .studycontent h2'));
+      if (!headings.length) { alert('No section headings found on this page.'); return; }
+      const options = headings.map((h, i) => `${i + 1}. ${h.textContent.trim().slice(0, 40)}`).join('\n');
+      const pick = prompt(`Jump to which section? Enter number (1 to ${headings.length}):\n\n${options}`);
+      const idx = parseInt(pick, 10) - 1;
+      if (headings[idx]) {
+        headings[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    };
+  }
+
+  // ==========================================
+  // 5. KENYATTA UNIVERSITY GPA & HONOURS CALCULATOR
+  // ==========================================
+  function showGpaCalculator() {
+    const panel = document.getElementById('panel');
+    const hero = document.getElementById('hero');
+    if (hero) hero.classList.add('hidden');
+    document.querySelectorAll('.navbtn').forEach(b => b.classList.remove('active'));
+
+    panel.innerHTML = `
+      <div class="panelhead">
+        <div>
+          <div class="eyebrow">Academic Performance</div>
+          <h1>KU Degree Honours & GPA Calculator</h1>
+          <p>Official grading system: Kenyatta University School of Business.</p>
+        </div>
+      </div>
+      <div class="toolgrid">
+        <div class="toolcard">
+          <h3>Enter Your Marks (%)</h3>
+          <p class="muted">Enter your expected or achieved mark out of 100 for each Year 1 unit:</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <label class="field">EET 100<input type="number" id="gpa_eet" min="0" max="100" value="72"></label>
+            <label class="field">BAC 100<input type="number" id="gpa_bac" min="0" max="100" value="68"></label>
+            <label class="field">BMS 100<input type="number" id="gpa_bms" min="0" max="100" value="75"></label>
+            <label class="field">UCU 104<input type="number" id="gpa_ucu104" min="0" max="100" value="65"></label>
+            <label class="field">UCU 110<input type="number" id="gpa_ucu110" min="0" max="100" value="70"></label>
+            <label class="field">BBA 100<input type="number" id="gpa_bba100" min="0" max="100" value="66"></label>
+            <label class="field">BBA 101<input type="number" id="gpa_bba101" min="0" max="100" value="64"></label>
+          </div>
+          <button class="toolbtn primary" id="calcGpaBtn" style="margin-top:12px;width:100%;">Compute Degree Standing</button>
+        </div>
+        <div class="toolcard" id="gpaResultsCard" style="display:none;text-align:center;padding:24px;">
+          <h3>Degree Standing</h3>
+          <div id="gpaMeanScore" class="stat" style="font-size:2.4rem;color:#159bff;">0.0%</div>
+          <div id="gpaClassification" style="font-size:1.15rem;font-weight:800;margin:10px 0;">--</div>
+          <p id="gpaAdvice" class="smallnote" style="margin-top:8px;"></p>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('calcGpaBtn').onclick = function() {
+      const ids = ['gpa_eet','gpa_bac','gpa_bms','gpa_ucu104','gpa_ucu110','gpa_bba100','gpa_bba101'];
+      let total = 0;
+      ids.forEach(id => {
+        total += Math.min(100, Math.max(0, Number(document.getElementById(id).value) || 0));
+      });
+      const mean = (total / ids.length).toFixed(1);
+      const resCard = document.getElementById('gpaResultsCard');
+      const meanDiv = document.getElementById('gpaMeanScore');
+      const classDiv = document.getElementById('gpaClassification');
+      const advDiv = document.getElementById('gpaAdvice');
+      resCard.style.display = 'block';
+      meanDiv.textContent = mean + '%';
+
+      if (mean >= 70) {
+        classDiv.textContent = '🏆 FIRST CLASS HONOURS';
+        classDiv.style.color = '#0c9a67';
+        advDiv.textContent = 'Outstanding academic performance! Maintain this consistency across Year 2 to graduate at the top of your class.';
+      } else if (mean >= 60) {
+        classDiv.textContent = '🌟 SECOND CLASS HONOURS (UPPER DIVISION)';
+        classDiv.style.color = '#159bff';
+        advDiv.textContent = 'Great standing! A small boost in 2 units will push your average into First Class territory.';
+      } else if (mean >= 50) {
+        classDiv.textContent = '📘 SECOND CLASS HONOURS (LOWER DIVISION)';
+        classDiv.style.color = '#d97706';
+        advDiv.textContent = 'Satisfactory performance. Focus on quantitative units (BMS 100 & BAC 100) to pull up your cumulative average.';
+      } else if (mean >= 40) {
+        classDiv.textContent = '⚠️ PASS';
+        classDiv.style.color = '#ea580c';
+        advDiv.textContent = 'You are meeting minimum requirements, but are at risk of missing honours. Revise model answers to improve.';
+      } else {
+        classDiv.textContent = '❌ FAIL / SUPPLEMENTARY REQUIRED';
+        classDiv.style.color = '#dc2626';
+        advDiv.textContent = 'Average is below the 40% pass mark. Use the Smart Practice quizzes and revision packs immediately.';
+      }
+    };
+  }
+
+  // ==========================================
+  // 6. FORMULA & LEGAL LATIN CHEAT SHEET
+  // ==========================================
+  const cheatData = [
+    { cat: 'BMS 100 Math', title: 'Simple Interest', text: 'I = (P × R × T) / 100 | Total A = P + I' },
+    { cat: 'BMS 100 Math', title: 'Compound Interest', text: 'A = P(1 + r/m)^(m·n) | Continuous: A = P·e^(rt)' },
+    { cat: 'BMS 100 Math', title: 'Ordinary Annuity (FV)', text: 'FV = A × [((1 + r)^n - 1) / r]' },
+    { cat: 'BMS 100 Math', title: 'Ordinary Annuity (PV)', text: 'PV = A × [(1 - (1 + r)^(-n)) / r]' },
+    { cat: 'BMS 100 Math', title: 'Loan Amortization Repayment', text: 'A = (PV × r) / [1 - (1 + r)^(-n)]' },
+    { cat: 'BMS 100 Math', title: 'Sinking Fund Deposit', text: 'A = (FV × r) / [(1 + r)^n - 1]' },
+    { cat: 'BMS 100 Math', title: 'Power Rule (Derivative)', text: 'd/dx(a·x^n) = a·n·x^(n-1)' },
+    { cat: 'BMS 100 Math', title: 'Profit Maximization', text: 'Set Marginal Profit = 0 (or MR = MC) and d²π/dQ² < 0' },
+    { cat: 'EET 100 Economics', title: 'Arc Price Elasticity of Demand', text: 'Ep = (ΔQ / ΔP) × [(P1 + P2) / (Q1 + Q2)]' },
+    { cat: 'EET 100 Economics', title: 'Consumer Equilibrium (Cardinal)', text: 'MUx / Px = MUy / Py = ... = MUm' },
+    { cat: 'EET 100 Economics', title: 'Producer Equilibrium (Isoquant)', text: 'MRTS_LK = w / r  <=>  MP_L / w = MP_K / r' },
+    { cat: 'BAC 100 Accounting', title: 'Accounting Equation', text: 'Assets = Capital + Liabilities + Income - Expenses - Drawings' },
+    { cat: 'BAC 100 Accounting', title: 'Cost of Sales & Profit', text: 'Cost of Sales = Opening Stock + Purchases - Closing Stock | Gross Profit = Sales - Cost of Sales' },
+    { cat: 'BAC 100 Accounting', title: 'Straight-line Depreciation', text: 'Depreciation = (Cost - Residual Value) / Useful Life' },
+    { cat: 'BBA 101 Law', title: 'Volenti non fit injuria', text: 'No injury is done to one who consents willingly (voluntary assumption of risk in tort).' },
+    { cat: 'BBA 101 Law', title: 'Quantum meruit', text: 'As much as he has deserved (remedy paying the reasonable value of work done).' },
+    { cat: 'BBA 101 Law', title: 'Caveat emptor', text: 'Let the buyer beware (buyer is responsible for inspecting quality before purchase).' },
+    { cat: 'BBA 101 Law', title: 'Stare decisis', text: 'To stand by decided matters (doctrine of judicial precedent binding lower courts).' }
+  ];
+
+  function showCheatSheet() {
+    const panel = document.getElementById('panel');
+    const hero = document.getElementById('hero');
+    if (hero) hero.classList.add('hidden');
+    document.querySelectorAll('.navbtn').forEach(b => b.classList.remove('active'));
+
+    panel.innerHTML = `
+      <div class="panelhead">
+        <div>
+          <div class="eyebrow">Quick Revision</div>
+          <h1>Formula & Legal Latin Cheat Sheet</h1>
+          <p>Instant lookup for core equations and legal doctrines.</p>
+        </div>
+      </div>
+      <div class="toolcard" style="margin-bottom:14px;">
+        <input type="search" id="cheatSearch" placeholder="Type formula or Latin phrase (e.g. annuity, volenti, depreciation)..." style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--white);color:var(--ink);">
+      </div>
+      <div id="cheatList" class="toolgrid"></div>
+    `;
+
+    function renderCheat(q = '') {
+      const filter = q.toLowerCase().trim();
+      const list = cheatData.filter(item => item.title.toLowerCase().includes(filter) || item.text.toLowerCase().includes(filter) || item.cat.toLowerCase().includes(filter));
+      document.getElementById('cheatList').innerHTML = list.length ? list.map(item => `
+        <div class="toolcard">
+          <span class="eyebrow">${esc(item.cat)}</span>
+          <h3 style="margin:4px 0 8px;">${esc(item.title)}</h3>
+          <p class="formula-card" style="font-size:0.85rem;">${esc(item.text)}</p>
+        </div>
+      `).join('') : '<div class="empty">No matching formula or doctrine found.</div>';
+    }
+    renderCheat();
+    document.getElementById('cheatSearch').oninput = e => renderCheat(e.target.value);
+  }
+
+  // =========================================================
+  // 7. HYBRID BCOMPATH AI STUDY TUTOR (OFFLINE + LIVE CLOUD)
+  // =======================================================
 </body></html>
